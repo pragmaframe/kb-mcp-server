@@ -90,7 +90,7 @@ def register_search_tools(mcp: FastMCP) -> None:
                         "text": node_data.get("text", "No text available"),
                         "score": node_data.get("score", 0.0),
                         "centrality": results.centrality()[node_id],
-                        "connections": len(results.neighbors(node_id))
+                        "connections": len(results.edges(node_id) or {})
                     }
                     
                     formatted_results.append(formatted_node)
