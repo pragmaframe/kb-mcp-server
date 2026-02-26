@@ -112,7 +112,14 @@ def register_search_tools(mcp: FastMCP) -> None:
                         score = result["score"]
                         
                         # Try to get the document text from the cache
-                        text = get_document_from_cache(doc_id) or "No text available"
+                        text = get_document_from_cache(doc_id)
+                        if not text:
+                            try:
+                                app = get_txtai_app()
+                                sql_result = app.search(f"select text from txtai where id = '{doc_id}'")
+                                text = sql_result[0].get("text", "No text available") if sql_result else "No text available"
+                            except Exception:
+                                text = "No text available"
                         logger.info(f"Retrieved document {doc_id}: text available: {text != 'No text available'}")
                         
                         # Add formatted result
