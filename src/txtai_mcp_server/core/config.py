@@ -1,6 +1,7 @@
 """Configuration for txtai MCP server."""
 import os
 import logging
+import tarfile, json
 from pathlib import Path
 from typing import Dict, Any, Optional, Literal, Union, Tuple
 
@@ -47,7 +48,6 @@ class TxtAISettings(BaseSettings):
     
     def _detect_model_from_archive(self, kb_path: str) -> str:
         """Read embedding model path from KB config.json to prevent dimension mismatch."""
-        import tarfile, json
         try:
             with tarfile.open(kb_path) as tar:
                 # txtai stores embeddings config as config.json or embeddings/config.json
