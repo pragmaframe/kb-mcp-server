@@ -12,14 +12,14 @@ ENV UV_LINK_MODE=copy
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
+    apt-get install -y --no-install-recommends git build-essential cmake ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY . /app/
 
 # Install txtai and other dependencies
-RUN uv pip install txtai[all,pipeline,graph]>=8.3.1 \
+RUN uv pip install --system txtai[all,pipeline,graph]>=8.3.1 \
     trio httpx>=0.28.1 pydantic-settings>=2.0 \
     networkx>=2.8.0 matplotlib>=3.5.0 PyPDF2>=2.0.0 \
     python-docx>=0.8.11 python-louvain>=0.16.0 \
@@ -29,10 +29,10 @@ RUN uv pip install txtai[all,pipeline,graph]>=8.3.1 \
     pandas>=1.3.0 markdown>=3.3.0
 
 # Install MCP as a normal Python package
-RUN uv pip install mcp==1.3.0
+RUN uv pip install --system mcp==1.3.0
 
 # Install the project
-RUN uv pip install -e .
+RUN uv pip install --system -e .
 
 # Set Python path
 ENV PYTHONPATH=/app
