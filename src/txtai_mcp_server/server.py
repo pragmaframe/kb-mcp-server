@@ -175,7 +175,7 @@ def run():
         os.environ["MCP_SSE_HOST"] = args.host
         os.environ["MCP_SSE_PORT"] = str(args.port)
         logger.info(f"Server will be available at http://{args.host}:{args.port}/sse")
-    
+
         # Create server instance with arguments
         server = create_server(
             host=args.host,
@@ -183,11 +183,67 @@ def run():
             enable_causal_boost=args.enable_causal_boost,
             causal_config_path=args.causal_config
         )
-        
-        # Let FastMCP handle transport automatically
-        # This ensures consistent behavior for causal boost features
-        # across direct execution and MCP environments
-        server.run(transport=args.transport)
+
+        import anyio
+        import uvicorn
+        from starlette.applications import Starlette
+        from starlette.middleware import Middleware
+        from starlette.routing import Mount, Route
+        from mcp.server.sse import SseServerTransport
+        from pydantic import ValidationError
+        from txtai_mcp_server.auth import (
+            OAuthSettings, JWKSCache, GoogleJWTValidator,
+            BearerTokenMiddleware, make_protected_resource_route,
+        )
+
+        try:
+            oauth_settings = OAuthSettings()
+        except ValidationError as exc:
+            logger.error(
+                "OAuth configuration incomplete – set OAUTH_SERVER_DOMAIN and "
+                "OAUTH_GOOGLE_CLIENT_ID (or use --transport stdio for local dev).\n%s",
+                exc,
+            )
+            sys.exit(1)
+
+        jwks_cache = JWKSCache(ttl=oauth_settings.jwks_cache_ttl)
+        validator = GoogleJWTValidator(oauth_settings, jwks_cache)
+
+        sse = SseServerTransport("/messages/")
+
+        async def handle_sse(request):
+            async with sse.connect_sse(
+                request.scope, request.receive, request._send
+            ) as streams:
+                await server._mcp_server.run(
+                    streams[0], streams[1],
+                    server._mcp_server.create_initialization_options(),
+                )
+
+        starlette_app = Starlette(
+            debug=False,
+            routes=[
+                make_protected_resource_route(oauth_settings),
+                Route("/sse", endpoint=handle_sse),
+                Mount("/messages/", app=sse.handle_post_message),
+            ],
+            middleware=[
+                Middleware(
+                    BearerTokenMiddleware,
+                    validator=validator,
+                    settings=oauth_settings,
+                ),
+            ],
+        )
+
+        async def serve():
+            config = uvicorn.Config(
+                starlette_app, host=args.host, port=args.port, log_level="info"
+            )
+            uv_server = uvicorn.Server(config)
+            await uv_server.serve()
+
+        anyio.run(serve)
     else:
         # For stdio transport, use default FastMCP run
         logger.info("Server will be available at stdin/stdout")

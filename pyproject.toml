@@ -28,6 +28,7 @@ dependencies = [
     "python-louvain>=0.16.0",  # For community detection in graphs
     "markdown>=3.3.0",  # For markdown processing
     "fast-langdetect>=0.3.1",  # For language detection in causal boost
+    "pyjwt[crypto]>=2.8.0",
 ]
 
 [project.scripts]
