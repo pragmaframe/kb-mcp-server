@@ -1,12 +1,7 @@
 version: '3.8'
 services:
   txtai-mcp:
-    build:
-      context: .
-      args:
-        - HF_TRANSFORMERS_MODELS=${HF_TRANSFORMERS_MODELS:-}
-        - HF_SENTENCE_TRANSFORMERS_MODELS=${HF_SENTENCE_TRANSFORMERS_MODELS:-}
-        - HF_CACHE_DIR=${HF_CACHE_DIR:-}
+    image: txtai-mcp-server
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:

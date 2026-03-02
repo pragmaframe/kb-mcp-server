@@ -8,5 +8,5 @@ class OAuthSettings(BaseSettings):
     jwks_cache_ttl: int = 300
 
     model_config = SettingsConfigDict(
-        env_prefix="OAUTH_", env_file=".env", env_file_encoding="utf-8"
+        env_prefix="OAUTH_", env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
