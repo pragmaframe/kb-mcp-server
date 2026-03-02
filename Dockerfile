@@ -12,14 +12,14 @@ ENV UV_LINK_MODE=copy
 
 # Install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git build-essential cmake ninja-build && \
+    apt-get install -y --no-install-recommends git build-essential cmake ninja-build libxcb1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY . /app/
 
 # Install txtai and other dependencies
-RUN uv pip install --system txtai[all,pipeline,graph]>=8.3.1 \
+RUN uv pip install --system "txtai[all,pipeline,graph]==8.3.1" "faiss-cpu==1.10.0" \
     trio httpx>=0.28.1 pydantic-settings>=2.0 \
     networkx>=2.8.0 matplotlib>=3.5.0 PyPDF2>=2.0.0 \
     python-docx>=0.8.11 python-louvain>=0.16.0 \

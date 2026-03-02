@@ -29,7 +29,7 @@ def check_model_in_cache(model_name: str, cache_dir: Path) -> bool:
     model_dir_name = model_name.replace('/', '--')
     
     # Check if the model directory exists in the cache
-    model_dir = cache_dir / "models--" + model_dir_name
+    model_dir = cache_dir / ("models--" + model_dir_name)
     
     # Check if the directory exists and contains model files
     if model_dir.exists() and any(model_dir.glob("**/pytorch_model.bin")):
